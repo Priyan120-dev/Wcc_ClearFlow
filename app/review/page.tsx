@@ -4,21 +4,23 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { IndianCurrency } from '@/components/indian-currency';
 import { PrivacyBanner } from '@/components/privacy-banner';
+import { Tooltip } from '@/components/tooltip';
+import { useToast } from '@/components/toast';
 import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  ArrowRight,
-  ShieldCheck,
   RotateCcw,
   Sparkles,
   CheckCheck,
   Clock,
   Building,
   CreditCard,
+  RefreshCw,
 } from 'lucide-react';
 
 export default function ReviewQueuePage() {
+  const { showToast } = useToast();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -35,6 +37,11 @@ export default function ReviewQueuePage() {
       }
     } catch (e) {
       console.error(e);
+      showToast({
+        type: 'error',
+        title: 'Connection Error',
+        message: 'Could not fetch review queue matches.',
+      });
     } finally {
       setLoading(false);
     }
@@ -54,9 +61,32 @@ export default function ReviewQueuePage() {
       });
       if (res.ok) {
         await loadData();
+        if (status === 'confirmed') {
+          showToast({
+            type: 'success',
+            title: 'Match Confirmed',
+            message: 'Invoice payment allocated and payer alias saved to memory.',
+          });
+        } else {
+          showToast({
+            type: 'info',
+            title: 'Match Rejected',
+            message: 'Candidate rejected. Engine will not re-suggest this pair.',
+          });
+        }
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Update Failed',
+          message: 'Unable to update match decision in storage.',
+        });
       }
-    } catch (e) {
-      alert('Failed to update match');
+    } catch {
+      showToast({
+        type: 'error',
+        title: 'Network Error',
+        message: 'Could not reach match service.',
+      });
     } finally {
       setActionLoading(null);
     }
@@ -83,6 +113,12 @@ export default function ReviewQueuePage() {
     await loadData();
     setActionLoading(null);
 
+    showToast({
+      type: 'success',
+      title: 'Bulk Confirmation Complete',
+      message: `Confirmed ${ids.length} high-confidence matches. 10s undo window active.`,
+    });
+
     // Set 10-second undo toast
     if (undoState?.timer) clearTimeout(undoState.timer);
     const timer = setTimeout(() => {
@@ -108,6 +144,12 @@ export default function ReviewQueuePage() {
     setUndoState(null);
     await loadData();
     setActionLoading(null);
+
+    showToast({
+      type: 'info',
+      title: 'Action Undone',
+      message: 'Reverted matches back to suggested review status.',
+    });
   };
 
   const invoicesMap = new Map<string, any>((data?.invoices || []).map((i: any) => [i.id, i]));
@@ -126,36 +168,42 @@ export default function ReviewQueuePage() {
 
   return (
     <div className="space-y-6">
-      <PrivacyBanner />
-
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Review & Approval Queue</h1>
-          <p className="text-sm text-slate-500">
-            A human approves every low-confidence match. No payments are reconciled automatically without review.
+          <p className="text-sm text-slate-500 mt-0.5">
+            A human approves every low-confidence match. No payments are reconciled without human sign-off.
           </p>
         </div>
 
         {/* Bulk Confirm High Confidence with Undo */}
         <div className="flex items-center gap-3">
+          <PrivacyBanner variant="compact" />
+
           {highConfidenceMatches.length > 0 && (
-            <button
-              onClick={handleBulkConfirmHighConfidence}
-              disabled={actionLoading !== null}
-              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-50 transition-all"
-            >
-              <CheckCheck className="h-4 w-4" />
-              Confirm All High-Confidence ({highConfidenceMatches.length})
-            </button>
+            <Tooltip content="Confirm all matches with score >= 90% in one click">
+              <button
+                onClick={handleBulkConfirmHighConfidence}
+                disabled={actionLoading !== null}
+                className="min-h-[40px] flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              >
+                {actionLoading === 'bulk' ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCheck className="h-4 w-4" />
+                )}
+                Confirm All High-Confidence ({highConfidenceMatches.length})
+              </button>
+            </Tooltip>
           )}
 
           {undoState && (
-            <div className="flex items-center gap-2 rounded-lg bg-amber-500 text-white px-3 py-1.5 text-xs font-semibold shadow animate-pulse">
+            <div className="flex items-center gap-2 rounded-xl bg-amber-500 text-white min-h-[40px] px-3.5 py-1.5 text-xs font-semibold shadow-md animate-pulse">
               <span>Confirmed {undoState.confirmedIds.length} matches</span>
               <button
                 onClick={handleUndoBulk}
-                className="underline flex items-center gap-1 hover:text-amber-100"
+                className="underline flex items-center gap-1 hover:text-amber-100 ml-1 font-bold"
               >
                 <RotateCcw className="h-3 w-3" />
                 Undo (10s)
@@ -166,24 +214,24 @@ export default function ReviewQueuePage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-slate-200 space-x-6 text-sm">
+      <div className="flex items-center border-b border-slate-200 space-x-6 text-sm overflow-x-auto">
         <button
           onClick={() => setSelectedTab('review')}
-          className={`pb-3 font-medium transition-colors border-b-2 flex items-center gap-1.5 ${
+          className={`pb-3 font-semibold transition-colors border-b-2 flex items-center gap-1.5 whitespace-nowrap ${
             selectedTab === 'review'
-              ? 'border-amber-600 text-amber-700 font-semibold'
+              ? 'border-amber-600 text-amber-800'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          <Clock className="h-4 w-4" />
+          <Clock className="h-4 w-4 text-amber-600" />
           Review Queue ({reviewMatches.length})
         </button>
 
         <button
           onClick={() => setSelectedTab('high_confidence')}
-          className={`pb-3 font-medium transition-colors border-b-2 flex items-center gap-1.5 ${
+          className={`pb-3 font-semibold transition-colors border-b-2 flex items-center gap-1.5 whitespace-nowrap ${
             selectedTab === 'high_confidence'
-              ? 'border-emerald-600 text-emerald-700 font-semibold'
+              ? 'border-emerald-600 text-emerald-800'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -193,9 +241,9 @@ export default function ReviewQueuePage() {
 
         <button
           onClick={() => setSelectedTab('confirmed')}
-          className={`pb-3 font-medium transition-colors border-b-2 flex items-center gap-1.5 ${
+          className={`pb-3 font-semibold transition-colors border-b-2 flex items-center gap-1.5 whitespace-nowrap ${
             selectedTab === 'confirmed'
-              ? 'border-slate-800 text-slate-900 font-semibold'
+              ? 'border-slate-900 text-slate-900'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -205,27 +253,44 @@ export default function ReviewQueuePage() {
 
         <button
           onClick={() => setSelectedTab('rejected')}
-          className={`pb-3 font-medium transition-colors border-b-2 flex items-center gap-1.5 ${
+          className={`pb-3 font-semibold transition-colors border-b-2 flex items-center gap-1.5 whitespace-nowrap ${
             selectedTab === 'rejected'
-              ? 'border-rose-600 text-rose-700 font-semibold'
+              ? 'border-rose-600 text-rose-800'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          <XCircle className="h-4 w-4 text-rose-500" />
+          <XCircle className="h-4 w-4 text-rose-600" />
           Rejected ({rejectedMatches.length})
         </button>
       </div>
 
+      {/* Skeletons while loading */}
+      {loading && !data && (
+        <div className="space-y-4 animate-pulse">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-44 rounded-xl bg-slate-200" />
+          ))}
+        </div>
+      )}
+
       {/* Match Cards List */}
-      {currentList.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500">
+      {!loading && currentList.length === 0 ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500 shadow-sm">
           <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
-          <h3 className="text-base font-semibold text-slate-800">No matches in this view</h3>
-          <p className="text-sm text-slate-500 mt-1">
+          <h3 className="text-base font-bold text-slate-800">No matches in this view</h3>
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
             {selectedTab === 'review'
-              ? 'All suggested matches have been reviewed or are in the high-confidence tier.'
-              : 'Switch tabs or run the matching engine to see more matches.'}
+              ? 'All suggested matches have been confirmed or verified. Check High-Confidence or Confirmed tabs.'
+              : 'Switch tabs or run the matching engine from the Dashboard to process new records.'}
           </p>
+          <div className="mt-4">
+            <Link
+              href="/"
+              className="inline-flex items-center text-xs font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              Go to Dashboard →
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -242,7 +307,7 @@ export default function ReviewQueuePage() {
             return (
               <div
                 key={match.id}
-                className={`rounded-xl border bg-white p-5 shadow-sm transition-all ${
+                className={`rounded-xl border bg-white p-6 shadow-sm transition-all ${
                   isAmbiguous
                     ? 'border-amber-300 ring-1 ring-amber-200'
                     : isHighConfidence
@@ -251,10 +316,10 @@ export default function ReviewQueuePage() {
                 }`}
               >
                 {/* Top Bar: Match Score & Method Badges */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                      className={`rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums ${
                         isHighConfidence
                           ? 'bg-emerald-100 text-emerald-800'
                           : 'bg-amber-100 text-amber-800'
@@ -262,16 +327,16 @@ export default function ReviewQueuePage() {
                     >
                       {Math.round(match.score * 100)}% Match Score
                     </span>
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-mono text-slate-600 uppercase">
+                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 uppercase">
                       {match.method.replace('_', ' ')}
                     </span>
                     {isTds && (
-                      <span className="rounded bg-indigo-100 px-2 py-0.5 text-[11px] font-medium text-indigo-800">
+                      <span className="rounded-md bg-indigo-50 border border-indigo-200 px-2 py-0.5 text-[11px] font-semibold text-indigo-800 tabular-nums">
                         TDS Adjusted: -<IndianCurrency paise={match.adjustment_paise} />
                       </span>
                     )}
                     {isBankCharge && (
-                      <span className="rounded bg-purple-100 px-2 py-0.5 text-[11px] font-medium text-purple-800">
+                      <span className="rounded-md bg-purple-50 border border-purple-200 px-2 py-0.5 text-[11px] font-semibold text-purple-800 tabular-nums">
                         Bank Charge Tol: -<IndianCurrency paise={match.adjustment_paise} />
                       </span>
                     )}
@@ -283,7 +348,7 @@ export default function ReviewQueuePage() {
                       <button
                         onClick={() => handleUpdateStatus(match.id, 'confirmed')}
                         disabled={actionLoading === match.id}
-                        className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+                        className="min-h-[40px] flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                       >
                         <CheckCircle className="h-3.5 w-3.5" />
                         Confirm Match
@@ -291,7 +356,7 @@ export default function ReviewQueuePage() {
                       <button
                         onClick={() => handleUpdateStatus(match.id, 'rejected')}
                         disabled={actionLoading === match.id}
-                        className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50"
+                        className="min-h-[40px] flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                       >
                         <XCircle className="h-3.5 w-3.5 text-rose-500" />
                         Reject
@@ -300,13 +365,13 @@ export default function ReviewQueuePage() {
                   )}
 
                   {match.status === 'confirmed' && (
-                    <span className="flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                    <span className="flex items-center gap-1 text-xs font-bold text-emerald-700">
                       <CheckCircle className="h-4 w-4" />
                       Confirmed
                     </span>
                   )}
                   {match.status === 'rejected' && (
-                    <span className="flex items-center gap-1 text-xs font-semibold text-rose-600">
+                    <span className="flex items-center gap-1 text-xs font-bold text-rose-600">
                       <XCircle className="h-4 w-4" />
                       Rejected
                     </span>
@@ -316,48 +381,48 @@ export default function ReviewQueuePage() {
                 {/* Side-by-Side Comparison */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 pb-2">
                   {/* Left: Invoice Data */}
-                  <div className="space-y-1 rounded-lg bg-slate-50/70 p-3.5 border border-slate-200">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="space-y-1.5 rounded-xl bg-slate-50 p-4 border border-slate-200">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
                       <Building className="h-3.5 w-3.5 text-slate-400" />
                       Invoice Record
                     </div>
                     <div className="flex items-baseline justify-between pt-1">
                       <span className="text-base font-bold text-slate-900">{inv.number}</span>
-                      <span className="text-sm font-bold text-slate-900">
+                      <span className="text-sm font-bold text-slate-900 tabular-nums">
                         <IndianCurrency paise={inv.amount_paise} />
                       </span>
                     </div>
-                    <p className="text-xs text-slate-700 font-medium">{inv.customer_name}</p>
-                    <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 font-mono">
+                    <p className="text-xs text-slate-800 font-semibold">{inv.customer_name}</p>
+                    <div className="flex items-center gap-4 text-xs text-slate-500 pt-1 tabular-nums">
                       <span>Issued: {inv.issue_date}</span>
-                      <span>Due: {inv.due_date}</span>
+                      <span className="font-semibold text-slate-700">Due: {inv.due_date}</span>
                     </div>
                   </div>
 
                   {/* Right: Bank Transaction Record */}
-                  <div className="space-y-1 rounded-lg bg-slate-50/70 p-3.5 border border-slate-200">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="space-y-1.5 rounded-xl bg-slate-50 p-4 border border-slate-200">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">
                       <CreditCard className="h-3.5 w-3.5 text-slate-400" />
                       Bank Statement Credit
                     </div>
                     <div className="flex items-baseline justify-between pt-1">
-                      <span className="text-xs font-mono text-slate-600">{txn.date}</span>
-                      <span className="text-sm font-bold text-emerald-700">
+                      <span className="text-xs text-slate-600 tabular-nums">{txn.date}</span>
+                      <span className="text-sm font-bold text-emerald-700 tabular-nums">
                         +<IndianCurrency paise={txn.amount_paise} />
                       </span>
                     </div>
-                    <p className="text-xs font-mono text-slate-800 break-all bg-white p-1.5 rounded border border-slate-200">
+                    <p className="text-xs text-slate-800 break-all bg-white p-2 rounded-lg border border-slate-200 tabular-nums leading-snug">
                       {txn.narration}
                     </p>
                     {txn.utr_ref && (
-                      <p className="text-[11px] text-slate-500 font-mono">UTR: {txn.utr_ref}</p>
+                      <p className="text-[11px] text-slate-500 tabular-nums">UTR: {txn.utr_ref}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Plain-Language Explainability Reasons */}
                 <div className="mt-3 pt-3 border-t border-slate-100">
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                     Matching Evidence & Explainability
                   </span>
                   <ul className="flex flex-wrap gap-2 text-xs">
@@ -366,9 +431,9 @@ export default function ReviewQueuePage() {
                       return (
                         <li
                           key={idx}
-                          className={`rounded px-2.5 py-1 ${
+                          className={`rounded-lg px-2.5 py-1 ${
                             isAlert
-                              ? 'bg-amber-100 text-amber-900 font-semibold'
+                              ? 'bg-amber-100 text-amber-900 font-semibold border border-amber-300'
                               : 'bg-slate-100 text-slate-700'
                           }`}
                         >

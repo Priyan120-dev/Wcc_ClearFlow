@@ -15,5 +15,5 @@ export function IndianCurrency({
   symbol = true,
 }: IndianCurrencyProps) {
   const formatted = formatPaiseToINR(paise, { decimals, symbol });
-  return <span className={`tabular-nums font-mono font-medium ${className}`}>{formatted}</span>;
+  return <span className={`tabular-nums font-medium ${className}`}>{formatted}</span>;
 }
