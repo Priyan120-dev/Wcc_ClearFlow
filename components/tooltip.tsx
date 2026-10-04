@@ -5,14 +5,12 @@ import React, { useState } from 'react';
 interface TooltipProps {
   content: string;
   children: React.ReactNode;
-  disabled?: boolean;
   className?: string;
 }
 
-export function Tooltip({ content, children, disabled = false, className = '' }: TooltipProps) {
+export function Tooltip({ content, children, className = '' }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
-  // If disabled is false and no content, just render children
   if (!content) return <>{children}</>;
 
   return (
@@ -27,11 +25,11 @@ export function Tooltip({ content, children, disabled = false, className = '' }:
       {isVisible && (
         <div
           role="tooltip"
-          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 flex items-center justify-center pointer-events-none animate-in fade-in zoom-in-95 duration-150"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50 pointer-events-none"
         >
-          <div className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-100 shadow-xl max-w-xs text-center whitespace-normal leading-snug border border-slate-700">
+          <div className="rounded border border-gray-800 bg-gray-900 px-2.5 py-1 text-xs font-normal text-gray-100 shadow-md whitespace-nowrap">
             {content}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
           </div>
         </div>
       )}

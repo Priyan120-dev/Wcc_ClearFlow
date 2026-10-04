@@ -35,7 +35,7 @@ export default function RemindersPage() {
     if (val.trim()) {
       showToast({
         type: 'info',
-        title: 'UPI ID Updated',
+        title: 'UPI ID updated',
         message: `Payment links will embed ${val.trim()}`,
       });
     }
@@ -53,7 +53,7 @@ export default function RemindersPage() {
       console.error(e);
       showToast({
         type: 'error',
-        title: 'Connection Error',
+        title: 'Connection error',
         message: 'Could not fetch payment reminders.',
       });
     } finally {
@@ -83,27 +83,27 @@ export default function RemindersPage() {
         if (status === 'approved') {
           showToast({
             type: 'success',
-            title: 'Draft Approved',
+            title: 'Draft approved',
             message: `Reminder for ${reminder.invoice_number} approved for WhatsApp dispatch.`,
           });
         } else {
           showToast({
             type: 'success',
-            title: 'Marked as Sent',
+            title: 'Marked as dispatched',
             message: `Logged follow-up dispatch for ${reminder.invoice_number}.`,
           });
         }
       } else {
         showToast({
           type: 'error',
-          title: 'Update Failed',
+          title: 'Update failed',
           message: 'Unable to update reminder status.',
         });
       }
     } catch {
       showToast({
         type: 'error',
-        title: 'Network Error',
+        title: 'Network error',
         message: 'Could not communicate with reminder service.',
       });
     } finally {
@@ -129,30 +129,30 @@ export default function RemindersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Payment Follow-Up Desk</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Human approves every reminder. No messages are dispatched automatically without explicit human sign-off.
+          <h1 className="text-[20px] font-semibold tracking-tight text-gray-900">Payment Reminders</h1>
+          <p className="text-[14px] text-gray-500 mt-1">
+            Review and approve WhatsApp reminders for unpaid invoices. No automated sending.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <PrivacyBanner variant="compact" />
 
-          {/* Required UPI ID Setting */}
-          <div className="flex items-center gap-2 rounded-xl bg-white border border-slate-300 p-2 shadow-sm min-h-[40px]">
-            <QrCode className="h-4 w-4 text-emerald-600 shrink-0" />
-            <div className="text-xs">
-              <span className="font-bold text-slate-700 block text-[9px] uppercase tracking-wide">
-                Your UPI ID (Required)
+          {/* UPI ID Setting */}
+          <div className="flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-3 py-1.5 min-h-[40px]">
+            <QrCode className="h-4 w-4 stroke-[1.5] text-emerald-600 shrink-0" />
+            <div className="text-[12px]">
+              <span className="font-medium text-gray-500 block text-[10px] uppercase tracking-wide">
+                UPI ID (Required)
               </span>
               <input
                 type="text"
                 placeholder="merchant@upi"
                 value={upiId}
                 onChange={(e) => handleSaveUpiId(e.target.value)}
-                className="tabular-nums text-xs font-semibold text-emerald-950 focus:outline-none placeholder:text-slate-400 w-36 sm:w-44"
+                className="tabular-nums text-[12px] font-medium text-gray-900 focus:outline-none placeholder:text-gray-400 w-36 sm:w-44"
               />
             </div>
           </div>
@@ -160,8 +160,8 @@ export default function RemindersPage() {
       </div>
 
       {!upiId.trim() && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-xs text-amber-900 flex items-center gap-2.5 font-medium shadow-sm">
-          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[12px] text-amber-900 flex items-center gap-2.5 font-medium">
+          <AlertTriangle className="h-4 w-4 stroke-[1.5] text-amber-600 shrink-0" />
           <span>
             Please configure your UPI ID above to generate valid one-click NPCI UPI payment deep links with <code>tn=&lt;invoice_no&gt;</code>.
           </span>
@@ -172,23 +172,23 @@ export default function RemindersPage() {
       {loading && (
         <div className="space-y-4 animate-pulse">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-36 rounded-xl bg-slate-200" />
+            <div key={i} className="h-36 rounded-lg bg-gray-100 border border-gray-200" />
           ))}
         </div>
       )}
 
       {/* Reminders List */}
       {!loading && reminders.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500 shadow-sm">
-          <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
-          <h3 className="text-base font-bold text-slate-800">All invoices settled!</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            There are no outstanding unpaid invoices requiring payment reminders. Reconciled books are up to date.
+        <div className="rounded-lg border border-gray-200 bg-white p-12 text-center text-gray-500">
+          <CheckCircle2 className="h-8 w-8 stroke-[1.5] text-gray-400 mx-auto mb-2" />
+          <h3 className="text-[16px] font-semibold text-gray-900">All invoices settled</h3>
+          <p className="text-[14px] text-gray-500 mt-1 max-w-sm mx-auto">
+            There are no outstanding unpaid invoices requiring payment reminders.
           </p>
           <div className="mt-4">
             <Link
               href="/"
-              className="inline-flex items-center text-xs font-semibold text-emerald-700 hover:text-emerald-800"
+              className="inline-flex items-center text-[14px] font-medium text-emerald-700 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 rounded"
             >
               Go to Dashboard →
             </Link>
@@ -204,30 +204,30 @@ export default function RemindersPage() {
             return (
               <div
                 key={rem.id}
-                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 transition-all hover:border-slate-300"
+                className="rounded-lg border border-gray-200 bg-white p-6 space-y-4 transition-colors hover:border-gray-300"
               >
                 {/* Warning if suggested match exists */}
                 {rem.has_suggested_match && (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-center justify-between">
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-[12px] text-amber-900 flex items-center justify-between">
                     <span className="flex items-center gap-1.5 font-medium">
-                      <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-                      Warning: A bank payment match has been suggested for this invoice but is unconfirmed.
+                      <AlertTriangle className="h-4 w-4 stroke-[1.5] text-amber-600 shrink-0" />
+                      A bank payment match has been suggested for this invoice but is unconfirmed.
                     </span>
-                    <Link href="/review" className="font-bold underline hover:text-amber-950 ml-2">
-                      Verify in Review Queue →
+                    <Link href="/review" className="font-semibold underline hover:text-amber-950 ml-2">
+                      Verify in review queue →
                     </Link>
                   </div>
                 )}
 
                 {/* Top Info Bar */}
-                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-100 pb-3">
                   <div>
-                    <span className="text-base font-bold text-slate-900">{rem.invoice_number}</span>
-                    <span className="text-sm text-slate-600 ml-2 font-medium">{rem.customer_name}</span>
+                    <span className="text-[16px] font-semibold text-gray-900">{rem.invoice_number}</span>
+                    <span className="text-[14px] text-gray-500 ml-2">{rem.customer_name}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-slate-400 uppercase font-semibold mr-2">Outstanding:</span>
-                    <span className="text-base font-bold text-rose-600 tabular-nums">
+                    <span className="text-[12px] text-gray-500 uppercase font-medium mr-2">Outstanding:</span>
+                    <span className="text-[16px] font-semibold text-red-600 tabular-nums">
                       <IndianCurrency paise={rem.outstanding_paise} />
                     </span>
                   </div>
@@ -237,13 +237,13 @@ export default function RemindersPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Draft Message Pane */}
                   <div className="md:col-span-2 space-y-2">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                      Polite Payment Reminder Draft (Strictly No Bank/IFSC Details)
+                    <span className="text-[12px] font-medium text-gray-500 uppercase tracking-wide">
+                      Reminder Draft (No Bank/IFSC Details Included)
                     </span>
-                    <div className="rounded-xl bg-slate-50 p-4 tabular-nums text-xs text-slate-800 border border-slate-200 whitespace-pre-line leading-relaxed">
+                    <div className="rounded-lg bg-gray-50 p-4 tabular-nums text-[12px] text-gray-800 border border-gray-200 whitespace-pre-line leading-relaxed">
                       {rem.draft_text}
                       {upiId.trim() && (
-                        <div className="mt-3 pt-2.5 border-t border-slate-200 text-emerald-800 font-bold text-[11px]">
+                        <div className="mt-3 pt-2.5 border-t border-gray-200 text-emerald-800 font-medium text-[11px]">
                           Direct UPI Intent: upi://pay?pa={upiId}&am={rem.outstanding_rupees}&tn={rem.invoice_number}
                         </div>
                       )}
@@ -251,25 +251,25 @@ export default function RemindersPage() {
                   </div>
 
                   {/* Actions & Status Pane */}
-                  <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                  <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col justify-between">
                     <div className="space-y-1">
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                      <span className="text-[12px] font-medium text-gray-500 uppercase tracking-wide">
                         Approval State
                       </span>
                       <div className="flex items-center gap-2 pt-1">
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-bold uppercase ${
+                          className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium uppercase ${
                             isSent
-                              ? 'bg-emerald-100 text-emerald-800'
+                              ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
                               : isApproved
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-slate-200 text-slate-700'
+                              ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                              : 'bg-gray-100 border border-gray-200 text-gray-700'
                           }`}
                         >
                           {rem.status}
                         </span>
                         {rem.last_reminded_at && (
-                          <span className="text-[10px] text-slate-500 tabular-nums">
+                          <span className="text-[12px] text-gray-500 tabular-nums">
                             Sent: {new Date(rem.last_reminded_at).toLocaleDateString()}
                           </span>
                         )}
@@ -282,14 +282,14 @@ export default function RemindersPage() {
                         <button
                           onClick={() => handleUpdateStatus(rem, 'approved')}
                           disabled={savingId === rem.id}
-                          className="min-h-[40px] w-full flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                          className="min-h-[40px] w-full flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-[12px] font-medium text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
                         >
                           {savingId === rem.id ? (
-                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                            <RefreshCw className="h-3.5 w-3.5 stroke-[1.5] animate-spin" />
                           ) : (
-                            <Check className="h-3.5 w-3.5" />
+                            <Check className="h-3.5 w-3.5 stroke-[1.5]" />
                           )}
-                          Approve Reminder Draft
+                          Approve reminder draft
                         </button>
                       )}
 
@@ -299,9 +299,9 @@ export default function RemindersPage() {
                           href={waLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="min-h-[40px] w-full flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                          className="min-h-[40px] w-full flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-[12px] font-medium text-gray-900 hover:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                         >
-                          <MessageSquare className="h-3.5 w-3.5" />
+                          <MessageSquare className="h-3.5 w-3.5 stroke-[1.5] text-emerald-600" />
                           Open WhatsApp ({rem.normalized_phone})
                         </a>
                       )}
@@ -311,10 +311,10 @@ export default function RemindersPage() {
                         <button
                           onClick={() => handleUpdateStatus(rem, 'sent')}
                           disabled={savingId === rem.id}
-                          className="min-h-[40px] w-full flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                          className="min-h-[40px] w-full flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-[12px] font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
                         >
-                          <Send className="h-3.5 w-3.5 text-slate-500" />
-                          Mark as Dispatched
+                          <Send className="h-3.5 w-3.5 stroke-[1.5] text-gray-500" />
+                          Mark as dispatched
                         </button>
                       )}
                     </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 export interface Toast {
   id: string;
@@ -30,10 +30,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       const id = Math.random().toString(36).substring(2, 9);
       setToasts((prev) => [...prev, { id, type, title, message }]);
 
-      // Auto dismiss after 4.5 seconds
       setTimeout(() => {
         removeToast(id);
-      }, 4500);
+      }, 4000);
     },
     [removeToast]
   );
@@ -41,50 +40,39 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toasts, showToast, removeToast }}>
       {children}
-      {/* Toast Notification Container */}
       <div
         aria-live="polite"
-        className="fixed bottom-4 right-4 z-[9999] flex max-h-screen w-full max-w-sm flex-col gap-2 p-2 pointer-events-none"
+        className="fixed bottom-4 right-4 z-50 flex max-h-screen w-full max-w-sm flex-col gap-2 pointer-events-none"
       >
         {toasts.map((toast) => {
           const isSuccess = toast.type === 'success';
           const isError = toast.type === 'error';
-          const isWarning = toast.type === 'warning';
 
           return (
             <div
               key={toast.id}
               role="alert"
-              className={`pointer-events-auto flex items-start gap-3 rounded-xl border p-4 shadow-lg transition-all animate-in slide-in-from-bottom-5 duration-200 ${
-                isSuccess
-                  ? 'border-emerald-200 bg-white text-emerald-950'
-                  : isError
-                  ? 'border-rose-200 bg-white text-rose-950'
-                  : isWarning
-                  ? 'border-amber-200 bg-white text-amber-950'
-                  : 'border-slate-200 bg-white text-slate-900'
-              }`}
+              className="pointer-events-auto flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3.5 shadow-lg"
             >
               <div className="mt-0.5 shrink-0">
-                {isSuccess && <CheckCircle2 className="h-5 w-5 text-emerald-600" />}
-                {isError && <AlertCircle className="h-5 w-5 text-rose-600" />}
-                {isWarning && <AlertTriangle className="h-5 w-5 text-amber-600" />}
-                {!isSuccess && !isError && !isWarning && <Info className="h-5 w-5 text-blue-600" />}
+                {isSuccess && <CheckCircle2 className="h-4 w-4 stroke-[1.5] text-emerald-700" />}
+                {isError && <AlertCircle className="h-4 w-4 stroke-[1.5] text-red-600" />}
+                {!isSuccess && !isError && <Info className="h-4 w-4 stroke-[1.5] text-gray-500" />}
               </div>
 
               <div className="flex-1 space-y-0.5">
-                <p className="text-sm font-semibold">{toast.title}</p>
+                <p className="text-xs font-semibold text-gray-900">{toast.title}</p>
                 {toast.message && (
-                  <p className="text-xs text-slate-600 leading-relaxed">{toast.message}</p>
+                  <p className="text-xs text-gray-500 leading-normal">{toast.message}</p>
                 )}
               </div>
 
               <button
                 onClick={() => removeToast(toast.id)}
-                className="shrink-0 rounded-lg p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="shrink-0 rounded p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 aria-label="Close"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5 stroke-[1.5]" />
               </button>
             </div>
           );
