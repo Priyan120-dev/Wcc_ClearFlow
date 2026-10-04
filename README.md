@@ -178,5 +178,3 @@ npm run dev
 In accordance with WCC Launchpad 30 hackathon guidelines:
 - **Google Antigravity:** Used as the pair-programming and build agent to architect, scaffold, write, and verify the implementation phases, unit tests, and benchmarks.
 - **Google Gemini API (`gemini-1.5-flash`):** Used strictly for structured OCR document reading of invoice PDFs/photos.
-#   W c c _ C l e a r F l o w  
- 
