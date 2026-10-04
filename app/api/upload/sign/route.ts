@@ -7,7 +7,7 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const res = NextResponse.next();
+    const res = new NextResponse();
     const userId = getOrCreateSessionId(req, res);
 
     const body = await req.json().catch(() => ({}));

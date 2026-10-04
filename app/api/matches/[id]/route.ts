@@ -11,7 +11,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const res = NextResponse.next();
+    const res = new NextResponse();
     const userId = getOrCreateSessionId(req, res);
     const { id: matchId } = await params;
 
